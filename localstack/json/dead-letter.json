@@ -1,0 +1,6 @@
+{
+  "QueueName": "sqs-dead-letter-queue",
+  "Attributes": {
+    "MessageRetentionPeriod": "1209600"
+  }
+}

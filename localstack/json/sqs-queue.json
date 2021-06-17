@@ -1,0 +1,8 @@
+{
+  "QueueName": "sqs-queue",
+  "Attributes": {
+    "ReceiveMessageWaitTimeSeconds": "20",
+    "VisibilityTimeout": "180",
+    "RedrivePolicy": "{\"deadLetterTargetArn\": \"arn:aws:sqs:ap-northeast-1:000000000000:sqs-dead-letter-queue\",\"maxReceiveCount\": 2}"
+  }
+}
