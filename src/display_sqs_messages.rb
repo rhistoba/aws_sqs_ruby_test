@@ -8,6 +8,8 @@ LOCALSTACK_ENDPOINT = 'http://localhost:4566'
 SQS_QUEUE_URL = 'http://localhost:4566/queue/sqs-queue'
 SQS_QUEUE_NAME = 'sqs-queue'
 SQS_WAIT_TIME_SECONDS = 5
+TARGET_EVENT_SOURCE = 'aws:s3'
+TARGET_EVENT_NAME = 'ObjectCreated:Put'
 
 def run
   sqs = Aws::SQS::Client.new(
@@ -23,7 +25,7 @@ def run
     receive_message_result = sqs.receive_message({
       queue_url: SQS_QUEUE_URL, 
       message_attribute_names: ["All"],
-      max_number_of_messages: 10,
+      max_number_of_messages: 1,
       wait_time_seconds: SQS_WAIT_TIME_SECONDS 
     })
 
@@ -38,8 +40,18 @@ def run
 
       messages.each do |message|
         body_hash = JSON.parse(message.body)
-        key = body_hash['Records'][0].dig('s3', 'object', 'key') 
-        p "File uploaded. key: #{key}"
+        record = body_hash['Records'][0]
+
+        eventSource = record.dig('eventSource')
+        eventName = record.dig('eventName')
+
+        if eventSource == TARGET_EVENT_SOURCE && eventName == TARGET_EVENT_NAME
+          key = record.dig('s3', 'object', 'key') 
+          p "File uploaded. key: #{key}"
+        else
+          p "Not correct eventSource (#{eventSource}) or eventName (#{eventName})."
+          p 'This message will be skipped and deleted.'
+        end
 
         sqs.delete_message({
           queue_url: SQS_QUEUE_URL,
